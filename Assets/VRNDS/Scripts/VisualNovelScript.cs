@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 public class VisualNovelScript {
 
@@ -32,13 +33,21 @@ public class VisualNovelScript {
 
     List<VisualNovelOperation> operations; //List of operations
     int currentOperation;
+    string pathToScript;
+    string novelPath;
+
+    public VisualNovelScript(string pathToScript, string novelPath) {
+        this.pathToScript = pathToScript;
+        this.novelPath = novelPath;
+        load();
+    }
 
     /// <summary>
     /// Set the path to the script, and start a thread to parse out all the important bits
     /// </summary>
     /// <param name="pathToScript"></param>
     /// <param name="novel">novel object, pass this in to automatically start the script when you're ready</param>
-    public void load(string pathToScript, VisualNovel novel) {
+    public void load() {
 
         //Build out the set of operations
         parseScript();
@@ -52,6 +61,22 @@ public class VisualNovelScript {
     /// </summary>
     public void parseScript() {
         //Build each operation as you parse through lines
+        string script = null;
+        using (StreamReader sr = new StreamReader(pathToScript)) {
+            // Read the stream to a string, and write the string to the console.
+            while (!sr.EndOfStream) {
+                script = sr.ReadToEnd();
+            }
+        }
+
+        VisualNovelOperationBuilder builder = new VisualNovelOperationBuilder(novelPath);
+        operations = new List<VisualNovelOperation>();
+        foreach(string line in script.Split('\n')) {
+            builder.addLine(line);
+            if(builder.isReady()) {
+                operations.Add(builder.getOperation());
+            }
+        }
 
         //Extract each resource file now, so we will have it when it's needed
 
@@ -66,7 +91,7 @@ public class VisualNovelScript {
     /// </summary>
     /// <returns>True when the script is done parsing, false otherwise</returns>
     public bool ready() {
-        return false;
+        return true; //TODO multithread this please
     }
 
     /// <summary>
@@ -75,9 +100,16 @@ public class VisualNovelScript {
     /// </summary>
     public int step(VisualNovelSystem vns, VisualNovel vn) {
         bool halt = false;
-        while (!halt) {
+        while (operations[currentOperation + 1].isReady() && !halt && currentOperation < operations.Count) {
             currentOperation++;
+            Debug.Log("Attempting to execute operation " + currentOperation + " which is a " + operations[currentOperation].GetType() + " pointing to " + operations[currentOperation].getResourcePath());
             halt = operations[currentOperation].execute(vns, vn);
+
+            //Prepare the next operation
+            if(currentOperation < operations.Count) {
+                operations[currentOperation + 1].prepare();
+            }
+            
         }
         return currentOperation;
     }
