@@ -4,12 +4,14 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using UnityEditor;
 
 public class VisualNovelSystem : MonoBehaviour {
 
-    public static string LIBRARY_DIRECTORY = "/storage/extSdCard/vnds/";
+    public static string LIBRARY_DIRECTORY = "/storage/sdcard0/vnds/";
 
     public Text textWindow;
+    public Slider loadingSlider;
     private string text;
 
     public GameObject background;
@@ -47,6 +49,10 @@ public class VisualNovelSystem : MonoBehaviour {
         if(nextBackgroundImage != null && nextBackgroundImage.isDone) {
             loadNextBackgroundImage();
         }
+
+        if (currentNovel != null && !currentNovel.ready()) {
+            updateLoadingBar();
+        }
     }
 
 
@@ -58,7 +64,7 @@ public class VisualNovelSystem : MonoBehaviour {
         string[] novelFolders = Directory.GetDirectories(LIBRARY_DIRECTORY);
 
         //Scan all the novels
-        Vector3 novelPosition = new Vector3(0, 0, 0);
+        Vector3 novelPosition = new Vector3(-300, 200, 0);
         Vector3 incrementPositionX = new Vector3(105, 0, 0);
         Vector3 incrementPositionY = new Vector3(0, 80, 0);
 
@@ -100,8 +106,9 @@ public class VisualNovelSystem : MonoBehaviour {
     }
 
     public void step() {
-        if (currentNovel != null && !choiceWindow.activeSelf) {
+        if (currentNovel != null && !choiceWindow.activeSelf && currentNovel.ready()) {
             currentNovel.step(this);
+            updateLoadingBar();
         }
     }
 
@@ -109,6 +116,10 @@ public class VisualNovelSystem : MonoBehaviour {
 
     //Operations below here are utilized by VisualNovelOperations to make things beautiful
     //In best practice, the logic implemented in this class should relate exclusively to unity gameobjects and UI elements
+
+    public void updateLoadingBar() {
+        loadingSlider.value = currentNovel.getProgress();
+    }
 
     /// <summary>
     /// Clears the text on the textWindow;
@@ -160,13 +171,18 @@ public class VisualNovelSystem : MonoBehaviour {
 
     //Part 2 of the above, this is called once the WWW clears
     private void loadNextBackgroundImage() {
-        Texture2D texture = new Texture2D(4, 4, TextureFormat.DXT1, false);
-        nextBackgroundImage.LoadImageIntoTexture(texture);
-        nextBackgroundImage.Dispose();
-        nextBackgroundImage = null;
+        try {
+            Texture2D texture = new Texture2D(4, 4, TextureFormat.DXT1, false);
+            nextBackgroundImage.LoadImageIntoTexture(texture);
+            nextBackgroundImage.Dispose();
+            nextBackgroundImage = null;
 
-        clearForeground();
-        background.transform.GetComponent<Renderer>().material.mainTexture = texture;
+            clearForeground();
+            background.transform.GetComponent<Renderer>().material.mainTexture = texture;
+        } catch (System.Exception e) {
+            Debug.Log("Could not load texture from " + nextBackgroundImage.url + " + into a texture, skipping operation!");
+        }
+        
     }
 
     public void jump(string newScriptPath) {

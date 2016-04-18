@@ -34,6 +34,8 @@ public class VisualNovel {
     public void setup() {
         //Populate info map
         infoMap = new Dictionary<string, string>();
+
+        //Typically this contains the "title" parameter
         using (StreamReader sr = new StreamReader(novelDirectory + "/info.txt")) {
             // Read the stream to a string, and write the string to the console.
             while (!sr.EndOfStream) {
@@ -42,6 +44,23 @@ public class VisualNovel {
                 infoMap.Add(key, line.Substring(key.Length + 1));
             }
         }
+
+        //Typically this will contain the height/width parameters for the novel
+        string imageInitializer = novelDirectory + "/img.ini";
+        if (File.Exists(imageInitializer)) {
+            using (StreamReader sr = new StreamReader(imageInitializer)) {
+                // Read the stream to a string, and write the string to the console.
+                while (!sr.EndOfStream) {
+                    string line = sr.ReadLine();
+                    string key = line.Substring(0, line.IndexOf('='));
+                    infoMap.Add(key, line.Substring(key.Length + 1));
+                }
+            }
+        } else {
+            infoMap.Add("height", "dynamic");
+            infoMap.Add("width", "dynamic");
+        }
+        
 
         setTitleFromInfoMap();
         loadThumbnail();
@@ -146,6 +165,14 @@ public class VisualNovel {
         currentIndex = 0;
         currentScriptName = scriptPath;
         currentScript = new VisualNovelScript(scriptPath, novelDirectory);
+    }
+
+    public bool ready() {
+        return currentScript != null && currentScript.ready();
+    }
+
+    public float getProgress() {
+        return currentScript.getProgress();
     }
 
     public void save(int saveNumber) {

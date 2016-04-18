@@ -27,7 +27,11 @@ public abstract class ResourceBackedOperation : VisualNovelOperation {
                 if (!File.Exists(VisualNovel.cacheDirectory + "/" + getType() + "/" + resourcePath)) {
                     using (ZipFile scriptZip = ZipFile.Read(novelPath + "/" + getType() + ".zip")) {
                         string fileName = resourcePath.Substring(resourcePath.LastIndexOf('/') + 1);
-                        scriptZip.ExtractSelectedEntries("name = " + fileName, null, VisualNovel.cacheDirectory);
+                        try {
+                            scriptZip.ExtractSelectedEntries("name = " + fileName, null, VisualNovel.cacheDirectory);
+                        } catch (System.Exception e) {
+                            Debug.Log("Could not find an entry in the " + getType() + " archive for resource " + resourcePath + ". Please ensure this file exists.");
+                        }
                     }
                 }
                 resourcePath = "file://" + VisualNovel.cacheDirectory + "/" + getType() + "/" + resourcePath;

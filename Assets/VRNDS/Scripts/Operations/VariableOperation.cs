@@ -18,7 +18,12 @@ public class VariableOperation : VisualNovelOperation {
         if(tokens[1].Equals("~")) {
             clear = true;
         } else {
-            value = int.Parse(input.Substring(input.IndexOf(' ') + 1));
+            try {
+                value = int.Parse(input.Substring(input.IndexOf(' ') + 1));
+            } catch (System.Exception e) {
+                Debug.Log("Could not parse input " + input + "! This may break the visual novel!");
+            }
+            
         }        
     }
 

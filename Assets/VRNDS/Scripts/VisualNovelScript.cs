@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 
 public class VisualNovelScript {
 
@@ -32,7 +33,9 @@ public class VisualNovelScript {
     }
 
     List<VisualNovelOperation> operations; //List of operations
+    Thread extractionThread;
     int currentOperation;
+    float parsingProgress;
     string pathToScript;
     string novelPath;
 
@@ -50,7 +53,8 @@ public class VisualNovelScript {
     public void load() {
 
         //Build out the set of operations
-        parseScript();
+        extractionThread = new Thread(() => parseScript());
+        extractionThread.Start();
 
         //Initialize currentOperation
         currentOperation = 0;
@@ -70,13 +74,20 @@ public class VisualNovelScript {
         }
 
         VisualNovelOperationBuilder builder = new VisualNovelOperationBuilder(novelPath);
+        string[] rawOperations = script.Split('\n');
         operations = new List<VisualNovelOperation>();
-        foreach(string line in script.Split('\n')) {
+        parsingProgress = 0;
+        int parsedLines = 0;
+        foreach(string line in rawOperations) {
             builder.addLine(line);
             if(builder.isReady()) {
                 operations.Add(builder.getOperation());
             }
+            //Calculte parsing progress
+            parsingProgress = parsedLines++ / (float)rawOperations.Length;
+            Debug.Log("Parsing is " + parsingProgress + " percent complete!");
         }
+        parsingProgress = 1;
 
         //Extract each resource file now, so we will have it when it's needed
 
@@ -91,7 +102,11 @@ public class VisualNovelScript {
     /// </summary>
     /// <returns>True when the script is done parsing, false otherwise</returns>
     public bool ready() {
-        return true; //TODO multithread this please
+        return !extractionThread.IsAlive; //TODO multithread this please
+    }
+
+    public float getProgress() {
+        return parsingProgress;
     }
 
     /// <summary>
