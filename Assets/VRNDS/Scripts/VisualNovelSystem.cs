@@ -20,6 +20,7 @@ public class VisualNovelSystem : MonoBehaviour {
     public GameObject choiceWindow;
 
     public GameObject novelIconPrefab;
+    public GameObject foregroundSpritePrefab;
 
     private VisualNovel currentNovel;
 
@@ -29,10 +30,12 @@ public class VisualNovelSystem : MonoBehaviour {
     private Dictionary<string, int> variables; //State object related to choice operations
     private string prepareToJump;
     private WWW nextBackgroundImage;
+    private List<WWW> nextForegroundImages;
 
     // Use this for initialization
     void Start() {
         buildListOfNovels();
+        nextForegroundImages = new List<WWW>();
     }
 
     // Update is called once per frame
@@ -158,15 +161,15 @@ public class VisualNovelSystem : MonoBehaviour {
         return value;
     }
 
-    public void insertForeGroundImage(GameObject image, int x, int y) {
-        //Create a copy of the provided image at the specified coordinates
-        Vector3 newPosition = new Vector3(x, y, 5.0f); //TODO get this information from the VisualNovel
-        Instantiate(image, newPosition, new Quaternion());
-    }
-
     //Call this from the backgroundOperation to queue up a new background image
     public void prepareBackgroundImage(WWW nextBackgroundImage) {
         this.nextBackgroundImage = nextBackgroundImage;
+    }
+
+    //Call this from the backgroundOperation to queue up a new background image
+    public void prepareForegroundImage(WWW nextForegroundImage) {
+        this.nextForegroundImages.Add(nextForegroundImage);
+        //TODO figured out the coordinate system, now create a shell class to hold the coordinates and then instantiate and apply texture to new sprite
     }
 
     //Part 2 of the above, this is called once the WWW clears
@@ -183,6 +186,23 @@ public class VisualNovelSystem : MonoBehaviour {
             Debug.Log("Could not load texture from " + nextBackgroundImage.url + " + into a texture, skipping operation!");
         }
         
+    }
+
+    private void loadReadyForegroundImages() {
+        if(nextForegroundImages.Count > 0) {
+            WWW nextImage = nextForegroundImages[0];
+            try {
+                Texture2D texture = new Texture2D(4, 4, TextureFormat.DXT1, false);
+                nextImage.LoadImageIntoTexture(texture);
+                nextImage.Dispose();
+                nextImage = null;
+
+                
+                background.transform.GetComponent<Renderer>().material.mainTexture = texture;
+            } catch (System.Exception e) {
+                Debug.Log("Could not load texture from " + nextBackgroundImage.url + " + into a texture, skipping operation!");
+            }
+        }
     }
 
     public void jump(string newScriptPath) {
