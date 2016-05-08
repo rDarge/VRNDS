@@ -1,0 +1,6 @@
+{
+  "name": "Vrnds",
+  "tagline": "Port of VNDS to VR",
+  "body": "### VNDS For VR\r\nA port of the VNDS engine to Unity for use with the Gear VR/Oculus Rift\r\n\r\n### About\r\nTBA\r\n\r\n### Usage\r\nTBA\r\n\r\n### Download\r\nBest way would be to grab the repo and run through Unity right now. To run with your Gear VR you will need to replace the oculus sig file in the plugins folder. Please see https://developer.oculus.com/osig/ to generate your signature file based on your device.\r\n\r\n### Authors and Contributors\r\nRight now it's looking like it's just me. Looking for additional authors more versed in audio encoding in order to support more formats on the fly. \r\n\r\n### Support or Contact\r\nShoot me a message on Github. \r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
