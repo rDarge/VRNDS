@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
 public class VisualNovelOperationBuilder {
 
@@ -29,87 +30,87 @@ public class VisualNovelOperationBuilder {
 
     public void addLine(string input) {
         input = input.Trim();
-        string[] tokens = input.Split(' ');
-        string key = tokens[0];
+
+        string[] command = input.Split(' ');
+
+        //Generate key and tokens (if provided)
+        string key = command[0];
+        string[] tokens = new string[command.Length - 1];
+        if(command.Length > 1) {
+            Array.Copy(command, 1, tokens, 0, command.Length - 1);
+        }
+        
         Debug.Log("Parsing token " + key);
 
-        //There will always be a token unless we hit a "fi"
-        string token = null;
-        if(tokens.Length > 1) {
-            token = input.Substring(key.Length + 1).Trim();
-        }
-
         if (key.Equals("sound")) {
-            parseSound(token);
+            parseSound(tokens);
         } else if (key.Equals("music")) {
-            parseMusic(token);
+            parseMusic(tokens);
         } else if (key.Equals("setvar")) {
-            parseVar(token);
-        } else if (key.Equals("text")) {
-            parseText(token);
-        } else if (key.Equals("clearText !")) {
-            parseText("~"); //Another way to clear the text
+            parseVar(tokens);
+        } else if (key.Equals("text") || key.Equals("clearText")) {
+            parseText(tokens);
         } else if (key.Equals("bgload")) {
-            parseBackground(token);
+            parseBackground(tokens);
         } else if (key.Equals("setimg")) {
-            parseForeground(token);
+            parseForeground(tokens);
         } else if (key.Equals("delay")) {
-            parseDelay(token);
+            parseDelay(tokens);
         } else if (key.Equals("choice")) {
-            parseChoice(token);
+            parseChoice(tokens);
         } else if (key.Equals("if")) {
-            parseIf(token);
+            parseIf(tokens);
         } else if (key.Equals("jump")) {
-            parseJump(token);
+            parseJump(tokens);
         } else if (key.Equals("fi")) {
             parseFi();
         }
     }
 
-    public void parseSound(string token) {
-        operation = new SoundOperation(token, novelPath);
+    public void parseSound(string[] tokens) {
+        operation = new SoundOperation(tokens, novelPath);
     }
 
-    public void parseMusic(string token) {
-        operation = new MusicOperation(token, novelPath);
+    public void parseMusic(string[] tokens) {
+        operation = new MusicOperation(tokens, novelPath);
     }
 
-    public void parseVar(string token) {
-        operation = new VariableOperation(token);
+    public void parseVar(string[] tokens) {
+        operation = new VariableOperation(tokens);
     }
 
-    public void parseText(string token) {
-        operation = new TextOperation(token);
+    public void parseText(string[] tokens) {
+        operation = new TextOperation(tokens);
     }
 
-    public void parseBackground(string token) {
-        operation = new BackgroundOperation(token, novelPath);
+    public void parseBackground(string[] tokens) {
+        operation = new BackgroundOperation(tokens, novelPath);
     }
 
-    public void parseForeground(string token) {
-        operation = new ForegroundOperation(token, novelPath);
+    public void parseForeground(string[] tokens) {
+        operation = new ForegroundOperation(tokens, novelPath);
     }
 
-    public void parseDelay(string token) {
-        operation = new DelayOperation(token);
+    public void parseDelay(string[] tokens) {
+        operation = new DelayOperation(tokens);
     }
 
-    public void parseChoice(string token) {
-        operation = new ChoiceOperation(token);
+    public void parseChoice(string[] tokens) {
+        operation = new ChoiceOperation(tokens);
     }
     
-    public void parseIf(string token) {
+    public void parseIf(string[] tokens) {
         multiline = true;
-        conditionalOperation = new ConditionalOperation(token);
+        conditionalOperation = new ConditionalOperation(tokens);
+    }
+
+    public void parseJump(string[] tokens) {
+        operation = new JumpOperation(tokens, novelPath);
     }
 
     public void parseFi() {
         multiline = false;
         conditionalOperation.addOperation(operation);
-    }
-
-    public void parseJump(string token) {
-        operation = new JumpOperation(token, novelPath);
     }
 
     public bool isReady() {

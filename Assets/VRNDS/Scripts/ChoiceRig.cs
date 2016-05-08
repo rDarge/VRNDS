@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 public class ChoiceRig : MonoBehaviour {
 
@@ -16,9 +17,9 @@ public class ChoiceRig : MonoBehaviour {
 	
 	}
 
-    public void setOptions(string[] options) {
+    public void setOptions(List<string> options) {
         //Enable these buttons and fill them with the choices
-        for(int x = 0; x < options.Length; x++) {
+        for(int x = 0; x < options.Count; x++) {
             if(buttons.Length > x) {
                 buttons[x].gameObject.SetActive(true);
                 buttons[x].GetComponentInChildren<Text>().text = options[x];
@@ -26,7 +27,7 @@ public class ChoiceRig : MonoBehaviour {
         }
        
         //Disable the other buttons
-        for(int x = options.Length; x < buttons.Length; x++) {
+        for(int x = options.Count; x < buttons.Length; x++) {
             buttons[x].gameObject.SetActive(false);
         }
     }

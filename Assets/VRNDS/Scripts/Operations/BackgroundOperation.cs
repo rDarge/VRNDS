@@ -6,7 +6,7 @@ using Ionic.Zip;
 public class BackgroundOperation : ResourceBackedOperation {
 
     //Takes path to sound file
-    public BackgroundOperation(string path, string novelPath) : base(path, novelPath) {
+    public BackgroundOperation(string[] tokens, string novelPath) : base(tokens[0], novelPath) {
 
     }
 

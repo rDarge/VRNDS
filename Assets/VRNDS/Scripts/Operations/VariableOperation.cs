@@ -1,29 +1,31 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class VariableOperation : VisualNovelOperation {
 
-    string variable;
+    string[] tokens;
+    string outputVariable;
+    string inputVariable;
+    string operation;
     int value;
     bool clear = false;
 
-    public VariableOperation(string input) {
-        //Split up the input into all it's important parts
-        string[] tokens = input.Split(' ');
-        
+    public VariableOperation(string[] tokens) {
         //Get variable name
-        variable = tokens[0];
+        this.tokens = tokens;
+        outputVariable = tokens[0];
+        operation = tokens[1];
 
         //Second token should be the value it'll be set to, if this fails to parse we'll just clear it (it's probably a ~)
         if(tokens[1].Equals("~")) {
             clear = true;
         } else {
             try {
-                value = int.Parse(input.Substring(input.IndexOf(' ') + 1));
+                value = int.Parse(tokens[2]);
             } catch (System.Exception e) {
-                Debug.Log("Could not parse input " + input + "! This may break the visual novel!");
+                inputVariable = tokens[2];
             }
-            
         }        
     }
 
@@ -34,7 +36,7 @@ public class VariableOperation : VisualNovelOperation {
     }
 
     //Load image, music, etc
-    public void prepare() {
+    public void prepare(Dictionary<string, int> variables) {
         //Do nothing
     }
 
@@ -45,7 +47,23 @@ public class VariableOperation : VisualNovelOperation {
 
     //Perform whatever operation is needed on the VisualNovelSystem/VisualNovel.
     public bool execute(VisualNovelSystem vns, VisualNovel vn) {
-        Debug.Log("This operation is not implemented yet");
+        if(inputVariable != null) {
+            value = vns.getVariable(inputVariable);
+        }
+
+        if (operation.Equals("=")) {
+            Debug.Log("Setting " + outputVariable + " to " + value);
+            vns.setVariable(outputVariable, value);
+        } else if (operation.Equals("+")) {
+            Debug.Log("Adding " + value + " to the current value of " + outputVariable);
+            vns.setVariable(outputVariable, vns.getVariable(outputVariable) + value);
+        }
+
+        
         return false;
+    }
+
+    public void close() {
+        //nothing
     }
 }

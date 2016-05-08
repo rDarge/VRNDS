@@ -3,6 +3,7 @@ using System.Collections;
 using System;
 using System.IO;
 using Ionic.Zip;
+using System.Collections.Generic;
 
 public class JumpOperation : VisualNovelOperation {
 
@@ -10,8 +11,8 @@ public class JumpOperation : VisualNovelOperation {
     protected string novelPath;
 
     //Takes path to sound file
-    public JumpOperation(string path, string novelPath) {
-        this.resourcePath = path;
+    public JumpOperation(string[] tokens, string novelPath) {
+        this.resourcePath = tokens[0];
         this.novelPath = novelPath;
     }
 
@@ -19,12 +20,29 @@ public class JumpOperation : VisualNovelOperation {
         return resourcePath;
     }
 
-    public void prepare() {
+    public void prepare(Dictionary<string, int> variables) {
+        
+        //Attempt to replace variables
+        if(resourcePath.IndexOf('{') > 0) {
+            int varStart = resourcePath.IndexOf('$') + 1;
+            int varLength = resourcePath.IndexOf('}') - varStart;
+            string variableName = resourcePath.Substring(varStart, varLength);
+            string substituteString = "{$" + variableName + "}";
+           
+            Debug.Log("Replacing variable " + variableName + " in " + resourcePath + " with " + variables[variableName]);
+
+            if (variables.ContainsKey(variableName)) {
+                resourcePath = resourcePath.Replace(substituteString, variables[variableName].ToString());
+            }
+        }
+
+        Debug.Log("Attempting to jump to script file at " + resourcePath);
         if (!File.Exists(novelPath + "/script/" + resourcePath)) {
             using (ZipFile scriptZip = ZipFile.Read(novelPath + "/script.zip")) {
-                scriptZip.ExtractSelectedEntries("name = " + resourcePath, null, VisualNovel.cacheDirectory);
+                string fileName = resourcePath.Substring(resourcePath.LastIndexOf('/') + 1);
+                resourcePath = ArchiveUtil.extractFromZipFile(scriptZip, fileName, VisualNovel.cacheDirectory);
             }
-            resourcePath = VisualNovel.cacheDirectory + "/script/" + resourcePath;
+            //resourcePath = VisualNovel.cacheDirectory + "/script/" + resourcePath;
         } else {
             resourcePath = novelPath + "/script/" + resourcePath;
         }
@@ -38,5 +56,9 @@ public class JumpOperation : VisualNovelOperation {
     public bool execute(VisualNovelSystem vns, VisualNovel vn) {
         vns.jump(resourcePath);
         return false;
+    }
+
+    public void close() {
+        //nothing
     }
 }

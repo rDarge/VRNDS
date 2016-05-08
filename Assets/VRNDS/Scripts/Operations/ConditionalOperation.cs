@@ -13,10 +13,8 @@ public class ConditionalOperation : VisualNovelOperation {
     string equalityOperator;
     int value;
 
-    public ConditionalOperation(string input) {
+    public ConditionalOperation(string[] tokens) {
         operations = new List<VisualNovelOperation>();
-
-        string[] tokens = input.Split(' ');
 
         variable = tokens[0];
         equalityOperator = tokens[1];
@@ -30,7 +28,7 @@ public class ConditionalOperation : VisualNovelOperation {
     }
 
     //Load image, music, etc
-    public void prepare() {
+    public void prepare(Dictionary<string, int> variables) {
         //Do nothing
     }
 
@@ -58,7 +56,7 @@ public class ConditionalOperation : VisualNovelOperation {
             } //TODO there are probably some more cases that are easy to nix when you get a chance
             if (evaluates) {
                 foreach (VisualNovelOperation operation in operations) {
-                    operation.prepare();
+                    operation.prepare(vns.getVariables());
                     bool eachOperation = operation.execute(vns, vn);
 
                     //one-way switch for halting operations
@@ -73,5 +71,9 @@ public class ConditionalOperation : VisualNovelOperation {
         
 
         return haltingOperation;
+    }
+
+    public void close() {
+        //nothing
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.IO;
 using Ionic.Zip;
+using System.Collections.Generic;
 
 public abstract class ResourceBackedOperation : VisualNovelOperation {
 
@@ -21,20 +22,32 @@ public abstract class ResourceBackedOperation : VisualNovelOperation {
     }
 
     //Load image, music, etc
-    public void prepare() {
-        if (resourceStream == null) {
+    public virtual void prepare(Dictionary<string, int> variables) {
+        if (!resourcePath.Equals("~") && resourceStream == null) {
             if (!File.Exists(novelPath + "/" + getType() + "/" + resourcePath)) {
                 if (!File.Exists(VisualNovel.cacheDirectory + "/" + getType() + "/" + resourcePath)) {
-                    using (ZipFile scriptZip = ZipFile.Read(novelPath + "/" + getType() + ".zip")) {
-                        string fileName = resourcePath.Substring(resourcePath.LastIndexOf('/') + 1);
-                        try {
-                            scriptZip.ExtractSelectedEntries("name = " + fileName, null, VisualNovel.cacheDirectory);
-                        } catch (System.Exception e) {
-                            Debug.Log("Could not find an entry in the " + getType() + " archive for resource " + resourcePath + ". Please ensure this file exists.");
+                    Debug.Log("Couldn't find asset " + resourcePath + " outside of archive, checking " + getType() + ".zip");
+                    if (File.Exists(novelPath + "/" + getType() + ".zip")) {
+                        using (ZipFile scriptZip = ZipFile.Read(novelPath + "/" + getType() + ".zip")) {
+                            string fileName = resourcePath.Substring(resourcePath.LastIndexOf('/') + 1);
+                            resourcePath = "file://" + ArchiveUtil.extractFromZipFile(scriptZip, fileName, VisualNovel.cacheDirectory);
+
+                            //
+                            //try {
+                            //    scriptZip.ExtractSelectedEntries("name = " + fileName, null, VisualNovel.cacheDirectory);
+                            //} catch (System.Exception e) {
+                            //    Debug.Log("Could not find an entry in the " + getType() + " archive for resource " + resourcePath + ". Please ensure this file exists.");
+                            //}
                         }
+                    } else {
+                        Debug.Log("Could not find " + resourcePath + " in folder or archive. Please ensure this file exists.");
+                        resourcePath = "~";
                     }
                 }
-                resourcePath = "file://" + VisualNovel.cacheDirectory + "/" + getType() + "/" + resourcePath;
+                //resourcePath = "file://" + VisualNovel.cacheDirectory + "/" + getType() + "/" + resourcePath;
+                if (!File.Exists(resourcePath)) {
+                    Debug.Log("Was not able to extract the " + getType() + " at " + resourcePath);
+                }
             } else {
                 resourcePath = "file://" + novelPath + "/" + getType() + "/" + resourcePath;
             }
@@ -48,8 +61,22 @@ public abstract class ResourceBackedOperation : VisualNovelOperation {
     public abstract string getType();
 
     //Check if stream is ready
-    public bool isReady() {
+    public virtual bool isReady() {
         return resourcePath.Equals("~") || (resourceStream != null && resourceStream.isDone);
+    }
+
+    public WWW getStream() {
+        if(isReady()) {
+            return resourceStream;
+        } else {
+            throw new System.Exception("Stream not ready to be consumed! Check isReady() before fetching content!");
+        }
+    }
+
+    public virtual void close() {
+        if(this.resourceStream != null) {
+            this.resourceStream.Dispose();
+        }
     }
 
     //Perform whatever operation is needed on the VisualNovelSystem/VisualNovel.

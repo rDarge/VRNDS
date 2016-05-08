@@ -1,13 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class DelayOperation : VisualNovelOperation {
 
     int wait;
 
-    public DelayOperation(string input) {
+    public DelayOperation(string[] tokens) {
         //Get text
-        wait = int.Parse(input);
+        wait = int.Parse(tokens[0]);
     }
 
     //Provide resource path for any resource needed by this operation. 
@@ -17,7 +18,7 @@ public class DelayOperation : VisualNovelOperation {
     }
 
     //Load image, music, etc
-    public void prepare() {
+    public void prepare(Dictionary<string, int> variables) {
         //Do nothing
     }
 
@@ -30,5 +31,9 @@ public class DelayOperation : VisualNovelOperation {
     public bool execute(VisualNovelSystem vns, VisualNovel vn) {
         Debug.Log("This operation is not implemented yet");
         return false;
+    }
+
+    public void close() {
+        //nothing
     }
 }

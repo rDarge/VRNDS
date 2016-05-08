@@ -1,13 +1,29 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
 public class TextOperation : VisualNovelOperation {
 
     string text;
+    bool halt = true;
 
-    public TextOperation(string input) {
+    public TextOperation(string[] tokens) {
         //Get text
-        text = input;
+
+        //Unity's C# environment is a load of horseapples that can't execute basic String functions,
+        //So we're stuck doing this.
+        //TODO Abstract this please
+        StringBuilder sb = new StringBuilder();
+        foreach(string token in tokens) {
+            sb.Append(token);
+            sb.Append(" ");
+        }
+
+        text = sb.ToString();
+
+        if (text.StartsWith("@")) {
+            halt = false;
+        }
     }
 
     //Provide resource path for any resource needed by this operation. 
@@ -17,7 +33,7 @@ public class TextOperation : VisualNovelOperation {
     }
 
     //Load image, music, etc
-    public void prepare() {
+    public void prepare(Dictionary<string, int> variables) {
         //Do nothing
     }
 
@@ -33,6 +49,10 @@ public class TextOperation : VisualNovelOperation {
         } else {
             vns.setText(text);
         }
-        return true;
+        return halt;
+    }
+
+    public void close() {
+        //nothing
     }
 }

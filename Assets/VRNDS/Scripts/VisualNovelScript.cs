@@ -38,6 +38,7 @@ public class VisualNovelScript {
     float parsingProgress;
     string pathToScript;
     string novelPath;
+    bool halt;
 
     public VisualNovelScript(string pathToScript, string novelPath) {
         this.pathToScript = pathToScript;
@@ -79,13 +80,18 @@ public class VisualNovelScript {
         parsingProgress = 0;
         int parsedLines = 0;
         foreach(string line in rawOperations) {
-            builder.addLine(line);
-            if(builder.isReady()) {
-                operations.Add(builder.getOperation());
+            try {
+                builder.addLine(line);
+                if (builder.isReady()) {
+                    operations.Add(builder.getOperation());
+                }
+                //Calculte parsing progress
+                parsingProgress = parsedLines++ / (float)rawOperations.Length;
+                Debug.Log("Parsing is " + parsingProgress + " percent complete!");
+            } catch (System.Exception e) {
+                Debug.Log("Couldn't parse script line: " + line + "\n\nBecause of " + e.Message);
             }
-            //Calculte parsing progress
-            parsingProgress = parsedLines++ / (float)rawOperations.Length;
-            Debug.Log("Parsing is " + parsingProgress + " percent complete!");
+            
         }
         parsingProgress = 1;
 
@@ -102,7 +108,13 @@ public class VisualNovelScript {
     /// </summary>
     /// <returns>True when the script is done parsing, false otherwise</returns>
     public bool ready() {
-        return !extractionThread.IsAlive; //TODO multithread this please
+        bool returnState = extractionThread != null && !extractionThread.IsAlive && operations != null;
+
+        if(returnState && currentOperation == 0 && operations.Count > 0 && !operations[0].isReady()) {
+            operations[0].prepare(null);
+        }
+
+        return returnState; //TODO multithread this please
     }
 
     public float getProgress() {
@@ -113,20 +125,30 @@ public class VisualNovelScript {
     /// Iterates through the list of operations, incrementing currentOperation 
     /// and passing the VisualNovelSystem to each operation to perform the corresponding action
     /// </summary>
-    public int step(VisualNovelSystem vns, VisualNovel vn) {
-        bool halt = false;
-        while (operations[currentOperation + 1].isReady() && !halt && currentOperation < operations.Count) {
-            currentOperation++;
+    public int step() {
+        if(this.ready() && halt) {
+            halt = false;
+        }
+
+        return currentOperation;
+    }
+
+    public void executeReadyOperation(VisualNovelSystem vns, VisualNovel vn) {
+        if (this.ready() && currentOperation < operations.Count && operations[currentOperation].isReady() && !halt) {
             Debug.Log("Attempting to execute operation " + currentOperation + " which is a " + operations[currentOperation].GetType() + " pointing to " + operations[currentOperation].getResourcePath());
-            halt = operations[currentOperation].execute(vns, vn);
+            try {
+                halt = operations[currentOperation].execute(vns, vn);
+            } catch (System.Exception e) {
+                Debug.LogError("Could not execute operation " + currentOperation + " in " + this.pathToScript);
+            }
+
+            currentOperation++;
 
             //Prepare the next operation
-            if(currentOperation < operations.Count) {
-                operations[currentOperation + 1].prepare();
+            if (currentOperation < operations.Count) {
+                operations[currentOperation].prepare(vns.getVariables());
             }
-            
         }
-        return currentOperation;
     }
 
 
@@ -141,6 +163,9 @@ public class VisualNovelScript {
 
     public void close() {
         //Clean up resources here.
+        foreach (VisualNovelOperation vno in operations) {
+            vno.close();
+        }
     }
 
 }
