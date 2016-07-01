@@ -151,6 +151,7 @@ public class VisualNovelSystem : MonoBehaviour {
     public void close() {
         this.currentNovel.close();
         this.messageLog = new StringBuilder();
+        cancelChoice();
         hideNovel();
     }
 
@@ -252,6 +253,10 @@ public class VisualNovelSystem : MonoBehaviour {
         ChoiceRig choiceRig = choiceWindow.GetComponent<ChoiceRig>();
         choiceRig.setOptions(options);
 
+    }
+
+    public void cancelChoice() {
+        choiceWindow.SetActive(false);
     }
 
     public void choose(int value) {

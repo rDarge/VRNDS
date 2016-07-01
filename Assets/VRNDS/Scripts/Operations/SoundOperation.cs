@@ -16,7 +16,7 @@ public class SoundOperation : AudioOperation {
             vns.stopMusic();
         } else {
             Debug.Log("Playing audio " + this.resourcePath);
-
+            //sound = resourceStream.GetAudioClip(false, false, AudioType.OGGVORBIS);
             sound = resourceStream.GetAudioClip(true);
             sound.LoadAudioData();
             vns.playMusic(sound);

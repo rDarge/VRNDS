@@ -43,11 +43,13 @@ public abstract class ResourceBackedOperation : VisualNovelOperation {
                         Debug.Log("Could not find " + resourcePath + " in folder or archive. Please ensure this file exists.");
                         resourcePath = "~";
                     }
+                } else {
+                    resourcePath = "file://" + VisualNovel.cacheDirectory + "/" + getType() + "/" + resourcePath;
                 }
-                //resourcePath = "file://" + VisualNovel.cacheDirectory + "/" + getType() + "/" + resourcePath;
-                if (!File.Exists(resourcePath)) {
-                    Debug.Log("Was not able to extract the " + getType() + " at " + resourcePath);
-                }
+                //This doesn't report accurately?
+                //if (!File.Exists(resourcePath)) {
+                //    Debug.Log("Was not able to extract the " + getType() + " at " + resourcePath);
+                //}
             } else {
                 resourcePath = "file://" + novelPath + "/" + getType() + "/" + resourcePath;
             }

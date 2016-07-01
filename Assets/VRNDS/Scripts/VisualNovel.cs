@@ -170,7 +170,7 @@ public class VisualNovel {
                     //scriptZip.ExtractSelectedEntries("name = main.scr", null, cacheDirectory);
                     //scriptZip.ExtractAll(cacheDirectory);
 
-                    scriptPath = ArchiveUtil.extractFromZipFile(scriptZip, "main.scr", cacheDirectory);
+                    scriptPath = ArchiveUtil.extractFromZipFile(scriptZip, "/main.scr", cacheDirectory);
                     
                     //foreach (ZipEntry e in scriptZip.Entries) {
                     //    e.Extract(cacheDirectory);

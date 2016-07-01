@@ -4,11 +4,13 @@ using System.Collections.Generic;
 
 public class DelayOperation : VisualNovelOperation {
 
-    int wait;
+    private static float convertToSeconds = 1/60f;
+    private float wait;
+    
 
     public DelayOperation(string[] tokens) {
         //Get text
-        wait = int.Parse(tokens[0]);
+        wait = int.Parse(tokens[0]) * convertToSeconds;
     }
 
     //Provide resource path for any resource needed by this operation. 
@@ -29,8 +31,8 @@ public class DelayOperation : VisualNovelOperation {
 
     //Perform whatever operation is needed on the VisualNovelSystem/VisualNovel.
     public bool execute(VisualNovelSystem vns, VisualNovel vn) {
-        Debug.Log("This operation is not implemented yet");
-        return false;
+        vns.wait(wait);
+        return true;
     }
 
     public void close() {
